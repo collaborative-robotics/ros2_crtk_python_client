@@ -18,13 +18,14 @@ import sensor_msgs.msg
 import crtk_msgs.msg
 import crtk.wait_move_handle
 
-def TransformFromMsg(t):
+def FrameFromTransformMsg(t):
     """
-    :param p: input pose
-    :type p: :class:`geometry_msgs.msg.Pose`
+    :param t: input transform
+    :type t: :class:`geometry_msgs.msg.Transform`
     :return: New :class:`PyKDL.Frame` object
 
-    Convert a pose represented as a ROS Pose message to a :class:`PyKDL.Frame`.
+    Convert a transform represented as a ROS Transform message to a :class:`PyKDL.Frame`.
+    There must be a standard package to perform this conversion, if you find it, please remove this code.
     """
     return PyKDL.Frame(PyKDL.Rotation.Quaternion(t.rotation.x,
                                                  t.rotation.y,
@@ -34,24 +35,56 @@ def TransformFromMsg(t):
                                     t.translation.y,
                                     t.translation.z))
 
-def TransformToMsg(f):
+def FrameToTransformMsg(f):
+    """
+    :param f: input frame
+    :type f: :class:`PyKDL.Frame`
+
+    Return a ROS Transform message for the Frame f.
+    There must be a standard package to perform this conversion, if you find it, please remove this code.
+    """
+    t = geometry_msgs.msg.Transform()
+    t.rotation.x, t.rotation.y, t.rotation.z, t.rotation.w = f.M.GetQuaternion()
+    t.translation.x = f.p[0]
+    t.translation.y = f.p[1]
+    t.translation.z = f.p[2]
+    return t
+
+
+def FrameFromPoseMsg(p):
+    """
+    :param p: input pose
+    :type p: :class:`geometry_msgs.msg.Pose`
+    :return: New :class:`PyKDL.Frame` object
+
+    Convert a pose represented as a ROS Pose message to a :class:`PyKDL.Frame`.
+    There must be a standard package to perform this conversion, if you find it, please remove this code.
+    """
+    return PyKDL.Frame(PyKDL.Rotation.Quaternion(p.orientation.x,
+                                                 p.orientation.y,
+                                                 p.orientation.z,
+                                                 p.orientation.w),
+                       PyKDL.Vector(p.position.x,
+                                    p.position.y,
+                                    p.position.z))
+
+def FrameToPoseMsg(f):
     """
     :param f: input pose
     :type f: :class:`PyKDL.Frame`
 
     Return a ROS Pose message for the Frame f.
-
+    There must be a standard package to perform this conversion, if you find it, please remove this code.
     """
-    m = geometry_msgs.msg.TransformStamped()
-    t = m.transform
-    t.rotation.x, t.rotation.y, t.rotation.z, t.rotation.w = f.M.GetQuaternion()
-    t.translation.x = f.p[0]
-    t.translation.y = f.p[1]
-    t.translation.z = f.p[2]
-    return m
+    p = geometry_msgs.msg.Pose()
+    p.orientation.x, p.orientation.y, p.orientation.z, p.orientation.w = f.M.GetQuaternion()
+    p.position.x = f.p[0]
+    p.position.y = f.p[1]
+    p.position.z = f.p[2]
+    return p
 
 
-def TwistFromMsg(t):
+def ArrayFromTwistMsg(t):
     return numpy.array([t.linear.x,
                         t.linear.y,
                         t.linear.z,
@@ -60,7 +93,7 @@ def TwistFromMsg(t):
                         t.angular.z])
 
 
-def WrenchFromMsg(w):
+def ArrayFromWrenchMsg(w):
     return numpy.array([w.force.x,
                         w.force.y,
                         w.force.z,
@@ -425,9 +458,9 @@ class utils:
                                       self.__setpoint_cp_event,
                                       age, wait):
             if not extra:
-                return TransformFromMsg(self.__setpoint_cp_data.transform)
+                return FrameFromPoseMsg(self.__setpoint_cp_data.pose)
             else:
-                return [TransformFromMsg(self.__setpoint_cp_data.transform),
+                return [FrameFromPoseMsg(self.__setpoint_cp_data.pose),
                         StampToSeconds(self.__setpoint_cp_data.header.stamp)]
         raise RuntimeWarning('unable to get setpoint_cp')
 
@@ -437,11 +470,11 @@ class utils:
         if hasattr(self.__class_instance, 'setpoint_cp'):
             raise RuntimeWarning('setpoint_cp already exists')
         # data
-        self.__setpoint_cp_data = geometry_msgs.msg.TransformStamped()
+        self.__setpoint_cp_data = geometry_msgs.msg.PoseStamped()
         self.__setpoint_cp_event = threading.Event()
         self.__setpoint_cp_lock = False
         # create the subscriber and keep in list
-        self.__setpoint_cp_subscriber = self.__ros_node.create_subscription(geometry_msgs.msg.TransformStamped,
+        self.__setpoint_cp_subscriber = self.__ros_node.create_subscription(geometry_msgs.msg.PoseStamped,
                                                                             ros_sub_namespace + 'setpoint_cp',
                                                                             self.__setpoint_cp_cb,
                                                                             10)
@@ -529,9 +562,9 @@ class utils:
                                       self.__measured_cp_event,
                                       age, wait):
             if not extra:
-                return TransformFromMsg(self.__measured_cp_data.transform)
+                return FrameFromPoseMsg(self.__setpoint_cp_data.pose)
             else:
-                return [TransformFromMsg(self.__measured_cp_data.transform),
+                return [FrameFromPoseMsg(self.__setpoint_cp_data.pose),
                         StampToSeconds(self.__measured_cp_data.header.stamp)]
         raise RuntimeWarning('unable to get measured_cp')
 
@@ -541,10 +574,10 @@ class utils:
         if hasattr(self.__class_instance, 'measured_cp'):
             raise RuntimeWarning('measured_cp already exists')
         # data
-        self.__measured_cp_data = geometry_msgs.msg.TransformStamped()
+        self.__measured_cp_data = geometry_msgs.msg.PoseStamped()
         self.__measured_cp_event = threading.Event()
         # create the subscriber and keep in list
-        self.__measured_cp_subscriber = self.__ros_node.create_subscription(geometry_msgs.msg.TransformStamped,
+        self.__measured_cp_subscriber = self.__ros_node.create_subscription(geometry_msgs.msg.PoseStamped,
                                                                             ros_sub_namespace + 'measured_cp',
                                                                             self.__measured_cp_cb,
                                                                             10)
@@ -563,9 +596,9 @@ class utils:
                                       self.__measured_cv_event,
                                       age, wait):
             if not extra:
-                return TwistFromMsg(self.__measured_cv_data.twist)
+                return ArrayFromTwistMsg(self.__measured_cv_data.twist)
             else:
-                return [TwistFromMsg(self.__measured_cv_data.twist),
+                return [ArrayFromTwistMsg(self.__measured_cv_data.twist),
                         StampToSeconds(self.__measured_cv_data.header.stamp)]
         raise RuntimeWarning('unable to get measured_cv')
 
@@ -597,9 +630,9 @@ class utils:
                                       self.__measured_cf_event,
                                       age, wait):
             if not extra:
-                return WrenchFromMsg(self.__measured_cf_data.wrench)
+                return ArrayFromWrenchMsg(self.__measured_cf_data.wrench)
             else:
-                return [WrenchFromMsg(self.__measured_cf_data.wrench),
+                return [ArrayFromWrenchMsg(self.__measured_cf_data.wrench),
                         StampToSeconds(self.__measured_cf_data.header.stamp)]
         raise RuntimeWarning('unable to get measured_cf')
 
@@ -695,7 +728,8 @@ class utils:
     # internal methods for servo_cp
     def __servo_cp(self, setpoint):
         # convert to ROS msg and publish
-        msg = TransformToMsg(setpoint)
+        msg = geometry_msgs.msg.PoseStamped()
+        msg.pose = FrameToPoseMsg(setpoint)
         self.__servo_cp_publisher.publish(msg)
 
     def add_servo_cp(self, ros_sub_namespace = ''):
@@ -704,7 +738,7 @@ class utils:
         if hasattr(self.__class_instance, 'servo_cp'):
             raise RuntimeWarning('servo_cp already exists')
         # create the subscriber and keep in list
-        self.__servo_cp_publisher = self.__ros_node.create_publisher(geometry_msgs.msg.TransformStamped,
+        self.__servo_cp_publisher = self.__ros_node.create_publisher(geometry_msgs.msg.PoseStamped,
                                                                      ros_sub_namespace + 'servo_cp',
                                                                      10)
         self.__publishers.append(self.__servo_cp_publisher)
@@ -808,7 +842,8 @@ class utils:
     # internal methods for move_cp
     def __move_cp(self, goal):
         # convert to ROS msg and publish
-        msg = TransformToMsg(goal)
+        msg = geometry_msgs.msg.PoseStamped()
+        msg.pose = FrameToPoseMsg(goal)
         handle = crtk.wait_move_handle(self.__operating_state_instance, self.__ros_node);
         self.__move_cp_publisher.publish(msg)
         return handle
@@ -819,7 +854,7 @@ class utils:
         if hasattr(self.__class_instance, 'move_cp'):
             raise RuntimeWarning('move_cp already exists')
         # create the subscriber and keep in list
-        self.__move_cp_publisher = self.__ros_node.create_publisher(geometry_msgs.msg.TransformStamped,
+        self.__move_cp_publisher = self.__ros_node.create_publisher(geometry_msgs.msg.PoseStamped,
                                                                     ros_sub_namespace + 'move_cp',
                                                                     10)
         self.__publishers.append(self.__move_cp_publisher)
