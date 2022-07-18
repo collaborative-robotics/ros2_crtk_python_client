@@ -308,30 +308,29 @@ class utils:
         # set start time to now if not specified
         if start_time is None:
             start_time = self.__now()
-        # if start_time 0.0, user provided a start time and we should
-        # check if an event arrived after start_time
-        if start_time > self.__now():
-            if (self.__operating_state_data.header.stamp > start_time
-                and self.__operating_state_data.is_busy == is_busy):
+        else:
+            # user provided start_time, check if an event arrived after start_time
+            last_event_time = rclpy.time.Time.from_msg(self.__operating_state_data.header.stamp)
+            if (last_event_time > start_time and self.__operating_state_data.is_busy == is_busy):
                 return True
+
         # other cases, waiting for an operating_state event
         _start_time = self.__now()
         self.__operating_state_event.clear()
         in_time = self.__operating_state_event.wait(timeout)
-        if not rclpy.ok():
-            return False;
-        if in_time:
-            # within timeout and result we expected
-            if self.__operating_state_data.is_busy == is_busy:
-                return True
-            else:
-                # wait a bit more
-                elapsed_time = (self.__now() - _start_time).nanoseconds / 1.e9
-                return self.__wait_for_busy(is_busy = is_busy,
-                                            start_time = start_time,
-                                            timeout = (timeout - elapsed_time))
         # past timeout
-        return False
+        if not rclpy.ok() or not in_time:
+            return False
+
+        # within timeout and result we expected
+        if self.__operating_state_data.is_busy == is_busy:
+            return True
+        else:
+            # wait a bit more
+            elapsed_time = (self.__now() - _start_time).nanoseconds / 1.e9
+            return self.__wait_for_busy(is_busy = is_busy,
+                                        start_time = start_time,
+                                        timeout = (timeout - elapsed_time))
 
     def add_operating_state(self, ros_sub_namespace = ''):
         # throw a warning if this has alread been added to the class,
