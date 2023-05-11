@@ -11,9 +11,11 @@ class ros_12:
     """ Class used to wrap rclpy so we can write code independent of ROS version
     """
     def __init__(self, node_name, namespace = ''):
+        self.init()
         self.__node_name = node_name
         self.__namespace = namespace
         self.__rate_in_Hz = 0.0
+        self.__executor_thread = None
         # ros init node
         self.__node = rclpy.create_node(self.node_name(), namespace = self.namespace())
 
@@ -41,14 +43,30 @@ class ros_12:
     def namespace(self):
         return self.__namespace
 
-    def spin_and_execute(self, function):
+    def init(self):
+        try:
+            rclpy.init()
+        except:
+            pass
+
+    def spin(self):
+        if self.__executor_thread != None:
+            return
         executor = rclpy.executors.MultiThreadedExecutor()
         executor.add_node(self.__node)
-        executor_thread = threading.Thread(target = executor.spin, daemon = True)
-        executor_thread.start()
+        self.__executor_thread = threading.Thread(target = executor.spin, daemon = True)
+        self.__executor_thread.start()
+
+    def shutdown(self):
+        rclpy.shutdown()
+        if self.__executor_thread != None:
+            self.__executor_thread.join()
+            self.__executor_thread = None
+
+    def spin_and_execute(self, function):
+        self.spin()
         try:
             function()
         except KeyboardInterrupt:
             pass
-        rclpy.shutdown()
-        executor_thread.join()
+        self.shutdown()
