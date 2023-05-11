@@ -1,7 +1,7 @@
 #  Author(s):  Anton Deguet
 #  Created on: 2018-02-15
 #
-# Copyright (c) 2018-2022 Johns Hopkins University, University of Washington, Worcester Polytechnic Institute
+# Copyright (c) 2018-2023 Johns Hopkins University, University of Washington, Worcester Polytechnic Institute
 # Released under MIT License
 
 import threading
@@ -16,6 +16,7 @@ import std_msgs.msg
 import geometry_msgs.msg
 import sensor_msgs.msg
 import crtk_msgs.msg
+import crtk_msgs.srv
 import crtk.wait_move_handle
 
 def FrameFromTransformMsg(t):
@@ -131,6 +132,7 @@ class utils:
         self.__expected_interval = expected_interval
         self.__subscribers = []
         self.__publishers = []
+        self.__services = []
         self.__attributes = []
         rclpy.get_default_context().on_shutdown(self.__ros_shutdown)
 
@@ -682,6 +684,26 @@ class utils:
 
 
 
+    # internal methods for hold
+    def __hold(self):
+        # convert to ROS msg and publish
+        msg = std_msgs.msg.Empty()
+        self.__hold_publisher.publish(msg)
+
+    def add_hold(self, ros_sub_namespace = ''):
+        # throw a warning if this has alread been added to the class,
+        # using the callback name to test
+        if hasattr(self.__class_instance, 'hold'):
+            raise RuntimeWarning('hold already exists')
+        # create the subscriber and keep in list
+        self.__hold_publisher = self.__ros_node.create_publisher(std_msgs.msg.Empty,
+                                                                 ros_sub_namespace + 'hold',
+                                                                 10)
+        self.__publishers.append(self.__hold_publisher)
+        # add attributes to class instance
+        self.__class_instance.hold = self.__hold
+
+
     # internal methods for servo_jp
     def __servo_jp(self, setpoint):
         # convert to ROS msg and publish
@@ -859,3 +881,52 @@ class utils:
         self.__publishers.append(self.__move_cp_publisher)
         # add attributes to class instance
         self.__class_instance.move_cp = self.__move_cp
+
+
+    # internal methods for forward_kinematics
+    def __forward_kinematics(self, jp, extra = None):
+        # convert to ROS msg and publish
+        request = crtk_msgs.srv.QueryForwardKinematics.Request()
+        request.jp = jp.tolist()
+        response = self.__forward_kinematics_service.call(request)
+        if not extra:
+            return tf_conversions.posemath.fromMsg(response.cp);
+        else:
+            return [tf_conversions.posemath.fromMsg(response.cp), response.result, response.message]
+
+    def add_forward_kinematics(self, ros_sub_namespace = ''):
+        # throw a warning if this has alread been added to the class,
+        # using the callback name to test
+        if hasattr(self.__class_instance, 'forward_kinematics'):
+            raise RuntimeWarning('forward_kinematics already exists')
+        # create the service and keep in list
+        self.__forward_kinematics_service = self.__ros_node.create_client(crtk_msgs.srv.QueryForwardKinematics,
+                                                                          ros_sub_namespace + 'forward_kinematics')
+        self.__services.append(self.__forward_kinematics_service)
+        # add attributes to class instance
+        self.__class_instance.forward_kinematics = self.__forward_kinematics
+
+
+    # internal methods for inverse_kinematics
+    def __inverse_kinematics(self, jp, cp, extra = None):
+        # convert to ROS msg and publish
+        request = crtk_msgs.srv.QueryInverseKinematics.Request()
+        request.jp = jp.tolist()
+        request.cp = tf_conversions.posemath.toMsg(cp)
+        response = self.__inverse_kinematics_service.call(request)
+        if not extra:
+            return numpy.array(response.jp)
+        else:
+            return [numpy.array(response.jp), response.result, response.message]
+
+    def add_inverse_kinematics(self, ros_sub_namespace = ''):
+        # throw a warning if this has alread been added to the class,
+        # using the callback name to test
+        if hasattr(self.__class_instance, 'inverse_kinematics'):
+            raise RuntimeWarning('inverse_kinematics already exists')
+        # create the service and keep in list
+        self.__inverse_kinematics_service = self.__ros_node.create_client(crtk_msgs.srv.QueryInverseKinematics,
+                                                                          ros_sub_namespace + 'inverse_kinematics')
+        self.__services.append(self.__inverse_kinematics_service)
+        # add attributes to class instance
+        self.__class_instance.inverse_kinematics = self.__inverse_kinematics
