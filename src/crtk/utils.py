@@ -890,9 +890,9 @@ class utils:
         request.jp = jp.tolist()
         response = self.__forward_kinematics_service.call(request)
         if not extra:
-            return tf_conversions.posemath.fromMsg(response.cp);
+            return FrameFromPoseMsg(response.cp);
         else:
-            return [tf_conversions.posemath.fromMsg(response.cp), response.result, response.message]
+            return [FrameFromPoseMsg(response.cp), response.result, response.message]
 
     def add_forward_kinematics(self, ros_sub_namespace = ''):
         # throw a warning if this has alread been added to the class,
@@ -912,7 +912,7 @@ class utils:
         # convert to ROS msg and publish
         request = crtk_msgs.srv.QueryInverseKinematics.Request()
         request.jp = jp.tolist()
-        request.cp = tf_conversions.posemath.toMsg(cp)
+        request.cp = FrameToPoseMsg(cp)
         response = self.__inverse_kinematics_service.call(request)
         if not extra:
             return numpy.array(response.jp)
