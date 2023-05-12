@@ -20,6 +20,10 @@ class ros_12:
         self.__node = rclpy.create_node(self.node_name(), namespace = self.namespace())
 
     @staticmethod
+    def ros_version():
+        return 2
+
+    @staticmethod
     def parse_argv(argv):
         # strip ros arguments
         rclpy.init(args = argv)
