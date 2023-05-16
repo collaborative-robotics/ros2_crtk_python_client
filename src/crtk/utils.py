@@ -5,7 +5,6 @@
 # Released under MIT License
 
 import threading
-import time
 
 import rclpy
 import rclpy.time
@@ -162,9 +161,9 @@ class utils:
 
     def __wait_for_valid_data(self, data, event, age, wait):
         event.clear()
-        if age == None:
+        if age is None:
             age = self.__expected_interval
-        if wait == None:
+        if wait is None:
             wait = self.__expected_interval
         # check if user accepts cached data
         if age != 0.0:
@@ -705,10 +704,11 @@ class utils:
 
 
     # internal methods for servo_jp
-    def __servo_jp(self, setpoint):
+    def __servo_jp(self, setpoint_p, setpoint_v = numpy.array([])):
         # convert to ROS msg and publish
         msg = sensor_msgs.msg.JointState()
-        msg.position = setpoint.tolist()
+        msg.position = setpoint_p.tolist()
+        msg.velocity = setpoint_v.tolist()
         self.__servo_jp_publisher.publish(msg)
 
     def add_servo_jp(self, ros_sub_namespace = ''):
