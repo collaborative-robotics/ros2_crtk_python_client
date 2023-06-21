@@ -382,7 +382,7 @@ class utils:
                     numpy.array(self.__setpoint_js_data.velocity),
                     numpy.array(self.__setpoint_js_data.effort),
                     StampToSeconds(self.__setpoint_js_data.header.stamp)]
-        raise RuntimeWarning('unable to get setpoint_js')
+        raise RuntimeWarning('unable to get setpoint_js ({})'.format(self.__setpoint_js_subscriber.topic_name))
 
     def __setpoint_jp(self, age = None, wait = None, extra = None):
         """Joint Position Setpoint.  Default age and wait are set to
@@ -400,8 +400,7 @@ class utils:
             else:
                 return [numpy.array(self.__setpoint_js_data.position),
                         StampToSeconds(self.__setpoint_js_data.header.stamp)]
-
-        raise RuntimeWarning('unable to get setpoint_jp in namespace ' + self.__ros_node.get_namespace())
+        raise RuntimeWarning('unable to get setpoint_jp ({})'.format(self.__setpoint_js_subscriber.topic_name))
 
     def __setpoint_jv(self, age = None, wait = None, extra = None):
         if self.__wait_for_valid_data(self.__setpoint_js_data,
@@ -412,7 +411,7 @@ class utils:
             else:
                 return [numpy.array(self.__setpoint_js_data.velocity),
                         StampToSeconds(self.__setpoint_js_data.header.stamp)]
-        raise RuntimeWarning('unable to get setpoint_jv')
+        raise RuntimeWarning('unable to get setpoint_jv ({})'.format(self.__setpoint_js_subscriber.topic_name))
 
     def __setpoint_jf(self, age = None, wait = None, extra = None):
         if self.__wait_for_valid_data(self.__setpoint_js_data,
@@ -423,7 +422,7 @@ class utils:
             else:
                 return [numpy.array(self.__setpoint_js_data.effort),
                         StampToSeconds(self.__setpoint_js_data.header.stamp)]
-        raise RuntimeWarning('unable to get setpoint_jf')
+        raise RuntimeWarning('unable to get setpoint_jf ({})'.format(self.__setpoint_js_subscriber.topic_name))
 
     def add_setpoint_js(self, ros_sub_namespace = ''):
         # throw a warning if this has alread been added to the class,
@@ -462,7 +461,7 @@ class utils:
             else:
                 return [FrameFromPoseMsg(self.__setpoint_cp_data.pose),
                         StampToSeconds(self.__setpoint_cp_data.header.stamp)]
-        raise RuntimeWarning('unable to get setpoint_cp')
+        raise RuntimeWarning('unable to get setpoint_cp ({})'.format(self.__setpoint_cp_subscriber.topic_name))
 
     def add_setpoint_cp(self, ros_sub_namespace = ''):
         # throw a warning if this has alread been added to the class,
@@ -496,7 +495,7 @@ class utils:
                     numpy.array(self.__measured_js_data.velocity),
                     numpy.array(self.__measured_js_data.effort),
                     StampToSeconds(self.__measured_js_data.header.stamp)]
-        raise RuntimeWarning('unable to get measured_js')
+        raise RuntimeWarning('unable to get measured_js ({})'.format(self.__measured_js_subscriber.topic_name))
 
     def __measured_jp(self, age = None, wait = None, extra = None):
         if self.__wait_for_valid_data(self.__measured_js_data,
@@ -507,7 +506,7 @@ class utils:
             else:
                 return [numpy.array(self.__measured_js_data.position),
                         StampToSeconds(self.__measured_js_data.header.stamp)]
-        raise RuntimeWarning('unable to get measured_jp')
+        raise RuntimeWarning('unable to get measured_jp ({})'.format(self.__measured_js_subscriber.topic_name))
 
     def __measured_jv(self, age = None, wait = None, extra = None):
         if self.__wait_for_valid_data(self.__measured_js_data,
@@ -518,7 +517,7 @@ class utils:
             else:
                 return [numpy.array(self.__measured_js_data.velocity),
                         StampToSeconds(self.__measured_js_data.header.stamp)]
-        raise RuntimeWarning('unable to get measured_jv')
+        raise RuntimeWarning('unable to get measured_jv ({})'.format(self.__measured_js_subscriber.topic_name))
 
     def __measured_jf(self, age = None, wait = None, extra = None):
         if self.__wait_for_valid_data(self.__measured_js_data,
@@ -529,7 +528,7 @@ class utils:
             else:
                 return [numpy.array(self.__measured_js_data.effort),
                         StampToSeconds(self.__measured_js_data.header.stamp)]
-        raise RuntimeWarning('unable to get measured_jf')
+        raise RuntimeWarning('unable to get measured_jf ({})'.format(self.__measured_js_subscriber.topic_name))
 
     def add_measured_js(self, ros_sub_namespace = ''):
         # throw a warning if this has alread been added to the class,
@@ -566,7 +565,7 @@ class utils:
             else:
                 return [FrameFromPoseMsg(self.__setpoint_cp_data.pose),
                         StampToSeconds(self.__measured_cp_data.header.stamp)]
-        raise RuntimeWarning('unable to get measured_cp')
+        raise RuntimeWarning('unable to get measured_cp ({})'.format(self.__measured_cp_subscriber.topic_name))
 
     def add_measured_cp(self, ros_sub_namespace = ''):
         # throw a warning if this has alread been added to the class,
@@ -600,7 +599,7 @@ class utils:
             else:
                 return [ArrayFromTwistMsg(self.__measured_cv_data.twist),
                         StampToSeconds(self.__measured_cv_data.header.stamp)]
-        raise RuntimeWarning('unable to get measured_cv')
+        raise RuntimeWarning('unable to get measured_cv ({})'.format(self.__measured_cv_subscriber.topic_name))
 
     def add_measured_cv(self, ros_sub_namespace = ''):
         # throw a warning if this has alread been added to the class,
@@ -634,7 +633,7 @@ class utils:
             else:
                 return [ArrayFromWrenchMsg(self.__measured_cf_data.wrench),
                         StampToSeconds(self.__measured_cf_data.header.stamp)]
-        raise RuntimeWarning('unable to get measured_cf')
+        raise RuntimeWarning('unable to get measured_cf ({})'.format(self.__measured_cf_subscriber.topic_name))
 
     def add_measured_cf(self, ros_sub_namespace = ''):
         # throw a warning if this has alread been added to the class,
