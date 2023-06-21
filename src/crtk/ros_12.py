@@ -67,10 +67,10 @@ class ros_12:
             self.__executor_thread.join()
             self.__executor_thread = None
 
-    def spin_and_execute(self, function):
+    def spin_and_execute(self, function, *arguments):
         self.spin()
         try:
-            function()
+            function(*arguments)
         except KeyboardInterrupt:
             pass
         self.shutdown()
