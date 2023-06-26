@@ -70,6 +70,13 @@ def FrameToPoseMsg(f):
 
 
 def ArrayFromTwistMsg(t):
+    """
+    :param t: input twist
+    :type t: :class:`geometry_msgs.msg.Twist` object
+
+    Return a NumPy array for the twist t.
+    There must be a standard package to perform this conversion, if you find it, please remove this code.
+    """
     return numpy.array([t.linear.x,
                         t.linear.y,
                         t.linear.z,
@@ -78,7 +85,33 @@ def ArrayFromTwistMsg(t):
                         t.angular.z])
 
 
+def ArrayToTwistMsg(a):
+    """
+    :param a: input twist
+    :type a: list of float
+
+    Return a ROS Twist message for the twist a.
+    There must be a standard package to perform this conversion, if you find it, please remove this code.
+    """
+    t = geometry_msgs.msg.Twist()
+    t.linear.x = a[0]
+    t.linear.y = a[1]
+    t.linear.z = a[2]
+    t.angular.x = a[3]
+    t.angular.y = a[4]
+    t.angular.z = a[5]
+
+    return t
+
+
 def ArrayFromWrenchMsg(w):
+    """
+    :param w: input wrench
+    :type w: :class:`geometry_msgs.msg.Wrench` object
+
+    Return a NumPy array for the wrench w.
+    There must be a standard package to perform this conversion, if you find it, please remove this code.
+    """
     return numpy.array([w.force.x,
                         w.force.y,
                         w.force.z,
@@ -87,5 +120,20 @@ def ArrayFromWrenchMsg(w):
                         w.torque.z])
 
 
-def StampToSeconds(stamp):
-    return stamp.sec * 1.0 + stamp.nanosec / 1.e9
+def ArrayToWrenchMsg(a):
+    """
+    :param a: input wrench
+    :type a: list of float
+
+    Return a ROS Twist message for the wrench w.
+    There must be a standard package to perform this conversion, if you find it, please remove this code.
+    """
+    w = geometry_msgs.msg.Wrench()
+    w.force.x = a[0]
+    w.force.y = a[1]
+    w.force.z = a[2]
+    w.torque.x = a[3]
+    w.torque.y = a[4]
+    w.torque.z = a[5]
+
+    return w
