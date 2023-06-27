@@ -92,12 +92,15 @@ class ral:
         stamp = self.timestamp(t)
         return self.to_secs(stamp)
         
-    def duration(self, d):
+    def create_duration(self, d):
         return rclpy.time.Duration(seconds = d)
+
+    def create_rate(self, rate_hz):
+        return self.__node.create_rate(rate_hz)
 
     def set_rate(self, rate_in_Hz):
         self.__rate_in_Hz = rate_in_Hz
-        self.__ros_rate = self.__node.create_rate(rate_in_Hz)
+        self.__ros_rate = self.create_rate(rate_in_Hz)
 
     def sleep(self):
         if self.__rate_in_Hz == 0.0:
@@ -225,7 +228,7 @@ class ral:
         )
         raise TimeoutError(err_msg)
 
-    def check_connections(self, timeout_seconds, check_children = True):
+    def check_connections(self, timeout_seconds = 5.0, check_children = True):
         """Check that all publishers are connected to at least one subscriber,
         and that all subscribers are connected to at least on publisher.
 
@@ -233,7 +236,10 @@ class ral:
         If check_children is True, all children will be checked as well.
         """
 
+        if timeout_seconds == 0.0:
+            return
+
         start_time = self.now()
-        timeout_duration = self.duration(timeout_seconds)
+        timeout_duration = self.create_duration(timeout_seconds)
 
         self.__check_connections(start_time, timeout_duration, check_children)
