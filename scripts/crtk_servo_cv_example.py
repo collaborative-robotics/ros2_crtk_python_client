@@ -1,35 +1,35 @@
 #!/usr/bin/env python
 
-# Author: Anton Deguet
-# Created on: 2015-02-22
+# Author: Hisashi Ishida, Anton Deguet
+# Created on: 2023-04-01
 #
-# Copyright (c) 2015-2021 Johns Hopkins University, University of Washington, Worcester Polytechnic Institute
+# Copyright (c) 2015-2023 Johns Hopkins University, University of Washington, Worcester Polytechnic Institute
 # Released under MIT License
 
 # Start a single arm using
 # > rosrun dvrk_robot dvrk_console_json -j <console-file>
 
 # To communicate with the arm using ROS topics, see the python based example dvrk_arm_test.py:
-# > rosrun crtk_python_client crtk_servo_jp_example.py <arm-name>
+# > rosrun crtk_python_client crtk_servo_cv_example.py <arm-name>
 
 import crtk
-import math
-import numpy
+import numpy as np
 import sys
 
 
-class crtk_servo_jp_example:
+class crtk_servo_cv_example:
     def __init__(self, ral):
+        self.ral = ral
+
         # populate this class with all the ROS topics we need
         self.crtk_utils = crtk.utils(self, ral)
         self.crtk_utils.add_operating_state()
-        self.crtk_utils.add_setpoint_js()
-        self.crtk_utils.add_servo_jp()
+        self.crtk_utils.add_setpoint_cp()
+        self.crtk_utils.add_servo_cv()
 
         # for all examples
         self.duration = 10 # 10 seconds
-        self.rate = 500    # aiming for 200 Hz
-        self.sleep_rate = ral.rate(self.rate)
+        self.rate = 200    # aiming for 200 Hz
         self.samples = self.duration * self.rate
 
     def run(self):
@@ -37,18 +37,16 @@ class crtk_servo_jp_example:
             print("Unable to enable the device, make sure it is connected.")
             return
 
-        # create a new goal starting with current position
-        start_jp = numpy.copy(self.setpoint_jp())
-        goal = numpy.copy(self.setpoint_jp())
-        amplitude = math.radians(10.0) # +/- 10 degrees
-
-        self.sleep_rate.sleep()
+        # create a new goal with constant speed
+        sleep_rate = self.ral.rate(self.rate)
         for i in range(self.samples):
-            angle = amplitude * (1.0 - math.cos(i * math.radians(360.0) / self.samples))
-            goal[0] = start_jp[0] + angle
-            goal[1] = start_jp[1] + angle
-            self.servo_jp(goal)
-            self.sleep_rate.sleep()
+            vel = np.array([0.05, 0.0, 0.0, 0.0, 0.0, 0.0]) # move 5 cm/sec along x direction
+            self.servo_cv(vel)
+            sleep_rate.sleep()
+
+        # command zero velcity to stop the robot
+        vel = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0]) 
+        self.servo_cv(vel)
 
 
 def main():
@@ -56,12 +54,11 @@ def main():
         print(sys.argv[0], ' requires one argument, i.e. crtk device namespace')
         return
     
-    example_name = type(crtk_servo_jp_example).__name__
+    example_name = type(crtk_servo_cv_example).__name__
     device_namespace = sys.argv[1]
     ral = crtk.ral(example_name, device_namespace)
-    example = crtk_servo_jp_example(ral)
+    example = crtk_servo_cv_example(ral)
     ral.spin_and_execute(example.run)
-
 
 if __name__ == '__main__':
     main()
