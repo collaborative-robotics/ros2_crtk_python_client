@@ -9,6 +9,7 @@ import rclpy.publisher
 import rclpy.qos
 import rclpy.subscription
 import rclpy.time
+import rclpy.utilities
 import threading
 
 
@@ -27,7 +28,7 @@ class ral:
     def parse_argv(argv):
         # strip ros arguments
         rclpy.init(args = argv)
-        return argv
+        return rclpy.utilities.remove_ros_args(argv)
 
     def __init__(self, node_name, namespace = '', node = None):
         self._node_name = node_name
@@ -208,7 +209,7 @@ class ral:
             '    Publishers:  {} connected,'
             ' {} not connected\n'
             '                 not connected: [{}]\n\n'
-            '    Subscribers: {connected_sub_count} connected,'
+            '    Subscribers: {} connected,'
             ' {} not connected\n'
             '                 not connected: [{}]\n\n'
         )
