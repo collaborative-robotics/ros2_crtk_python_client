@@ -20,6 +20,8 @@ import sys
 
 class crtk_servo_cp_example:
     def __init__(self, ral):
+        self.ral = ral
+
         # populate this class with all the ROS topics we need
         self.crtk_utils = crtk.utils(self, ral)
         self.crtk_utils.add_operating_state()
@@ -29,12 +31,15 @@ class crtk_servo_cp_example:
         # for all examples
         self.duration = 10 # 10 seconds
         self.rate = 200    # aiming for 200 Hz
-        self.sleep_rate = ral.rate(self.rate)
         self.samples = self.duration * self.rate
 
     def run(self):
-        if not self.enable(60):
+        if not self.enable(30):
             print("Unable to enable the device, make sure it is connected.")
+            return
+
+        if not self.home(30):
+            print('Unable to home the device, make sure it is connected.')
             return
 
         # create a new goal starting with current position
@@ -46,12 +51,12 @@ class crtk_servo_cp_example:
         goal.M = self.setpoint_cp().M
         amplitude = 0.01 # 2 centimeters
 
-        self.sleep_rate.sleep()
+        sleep_rate = self.ral.create_rate(self.rate)
         for i in range(self.samples):
             goal.p[0] =  start.p[0] + amplitude * (1.0 - math.cos(i * math.radians(360.0) / self.samples))
             goal.p[1] =  start.p[1] + amplitude * (1.0 - math.cos(i * math.radians(360.0) / self.samples))
             self.servo_cp(goal)
-            self.sleep_rate.sleep()
+            sleep_rate.sleep()
 
 
 def main():
