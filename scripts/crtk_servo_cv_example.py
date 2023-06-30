@@ -7,10 +7,10 @@
 # Released under MIT License
 
 # Start a single arm using
-# > rosrun dvrk_robot dvrk_console_json -j <console-file>
+# > ros2 run dvrk_robot dvrk_console_json -j <console-file>
 
 # To communicate with the arm using ROS topics, see the python based example dvrk_arm_test.py:
-# > rosrun crtk_python_client crtk_servo_cv_example.py <arm-name>
+# > ros2 run crtk crtk_servo_cv_example.py <arm-name>
 
 import crtk
 import numpy as np
@@ -33,6 +33,8 @@ class crtk_servo_cv_example:
         self.samples = self.duration * self.rate
 
     def run(self):
+        self.ral.check_connections()
+
         if not self.enable(30):
             print("Unable to enable the device, make sure it is connected.")
             return
@@ -49,7 +51,7 @@ class crtk_servo_cv_example:
             sleep_rate.sleep()
 
         # command zero velcity to stop the robot
-        vel = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0]) 
+        vel = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
         self.servo_cv(vel)
 
 
@@ -57,7 +59,7 @@ def main():
     if (len(sys.argv) != 2):
         print(sys.argv[0], ' requires one argument, i.e. crtk device namespace')
         return
-    
+
     example_name = type(crtk_servo_cv_example).__name__
     device_namespace = sys.argv[1]
     ral = crtk.ral(example_name, device_namespace)
