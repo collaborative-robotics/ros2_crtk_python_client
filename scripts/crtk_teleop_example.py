@@ -57,7 +57,7 @@ class crtk_teleop_example:
             self.crtk.add_servo_jp()
 
     def __init__(self, ral, master_namespace, puppet_namespace, gripper_namespace, jaw_namespace):
-        self.master = self.master(ral.create_child(master_namespace))
+        self.master = self.Master(ral.create_child(master_namespace))
         self.puppet = self.Puppet(ral.create_child(puppet_namespace))
         self.has_gripper = False
 
