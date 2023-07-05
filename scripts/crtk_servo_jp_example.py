@@ -12,6 +12,7 @@
 # To communicate with the arm using ROS topics, see the python based example dvrk_arm_test.py:
 # > ros2 run crtk crtk_servo_jp_example.py <arm-name>
 
+import argparse
 import crtk
 import math
 import numpy
@@ -31,7 +32,6 @@ class crtk_servo_jp_example:
         # for all examples
         self.duration = 10 # 10 seconds
         self.rate = 500    # aiming for 200 Hz
-        self.samples = self.duration * self.rate
 
     def run(self):
         self.ral.check_connections()
@@ -50,8 +50,10 @@ class crtk_servo_jp_example:
         amplitude = math.radians(10.0) # +/- 10 degrees
 
         sleep_rate = self.ral.create_rate(self.rate)
-        for i in range(self.samples):
-            angle = amplitude * (1.0 - math.cos(i * math.radians(360.0) / self.samples))
+        samples = self.duration * self.rate
+        for i in range(samples):
+            sine = math.sin(math.radians(360.0) * float(i) / samples)
+            angle = amplitude * sine
             goal[0] = start_jp[0] + angle
             goal[1] = start_jp[1] + angle
             self.servo_jp(goal)
@@ -59,13 +61,13 @@ class crtk_servo_jp_example:
 
 
 def main():
-    if (len(sys.argv) != 2):
-        print(sys.argv[0], ' requires one argument, i.e. crtk device namespace')
-        return
+    parser = argparse.ArgumentParser()
+    parser.add_argument('namespace', type = str, help = 'ROS namespace for CRTK device')
+    app_args = crtk.ral.parse_argv(sys.argv[1:]) # process and remove ROS args
+    args = parser.parse_args(app_args) 
 
     example_name = type(crtk_servo_jp_example).__name__
-    device_namespace = sys.argv[1]
-    ral = crtk.ral(example_name, device_namespace)
+    ral = crtk.ral(example_name, args.namespace)
     example = crtk_servo_jp_example(ral)
     ral.spin_and_execute(example.run)
 
