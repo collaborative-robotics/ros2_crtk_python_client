@@ -1,3 +1,4 @@
+from glob import glob
 from setuptools import setup
 
 package_name = 'crtk'
@@ -11,6 +12,7 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
+        ('lib/' + package_name, glob('scripts/*py')),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
