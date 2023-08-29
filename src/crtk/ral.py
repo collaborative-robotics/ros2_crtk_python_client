@@ -155,6 +155,8 @@ class ral:
 
     def service_client(self, name, srv_type):
         client = self._node.create_client(srv_type, self._add_namespace_to(name))
+        if not hasattr(client, '__call__'):
+            client.__call__ = client.call
         self._services.append(client)
         return client
 
