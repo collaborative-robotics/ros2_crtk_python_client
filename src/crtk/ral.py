@@ -140,14 +140,16 @@ class ral:
         if latch:
             # publisher will retain queue_size messages for future subscribers
             qos.durability = rclpy.qos.DurabilityPolicy.TRANSIENT_LOCAL
-
         pub = self._node.create_publisher(msg_type, self._add_namespace_to(topic), qos)
         self._publishers.append(pub)
         return pub
 
-    def subscriber(self, topic, msg_type, callback, queue_size=10, *args, **kwargs):
+    def subscriber(self, topic, msg_type, callback, queue_size=10, latch = False, *args, **kwargs):
         history = rclpy.qos.HistoryPolicy.KEEP_LAST
         qos = rclpy.qos.QoSProfile(depth = queue_size, history = history)
+        if latch:
+            # subscriber should get past messages
+            qos.durability = rclpy.qos.DurabilityPolicy.TRANSIENT_LOCAL
         sub = self._node.create_subscription(msg_type, self._add_namespace_to(topic),
                                               callback, qos, *args, **kwargs)
         self._subscribers.append(sub)
