@@ -5,7 +5,7 @@ package_name = 'crtk'
 
 setup(
     name=package_name,
-    version='1.0.0',
+    version='1.1.0',
     packages=[package_name],
     package_dir={'': 'src'},
     data_files=[
